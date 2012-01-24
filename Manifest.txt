@@ -1,0 +1,11 @@
+.autotest
+.rspec
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/dedupe
+lib/deduper.rb
+lib/deduper/scanner.rb
+spec/scanner_spec.rb
+spec/spec_helper.rb
