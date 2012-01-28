@@ -4,6 +4,17 @@
 # loaded once.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+
+if RUBY_VERSION =~ /1\.8/
+  begin
+    require 'require_relative'
+    require 'ruby-debug'
+  rescue
+    require 'rubygems'
+    require 'require_relative'
+    require 'ruby-debug'
+  end
+end
 require 'deduper'
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true

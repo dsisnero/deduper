@@ -1,14 +1,15 @@
 require 'find'
-module Deduper
+
+module Deduper  
 
   class Scanner
     
     attr_reader :scan_dirs
     attr_reader :scanned_files, :exclude_paths
 
-    def initialize(*paths)
-      raise ArgumentError if paths.empty?
-      paths = *paths.flatten
+    def initialize(*path_array)
+      raise ArgumentError if path_array.empty?
+      paths = *path_array.flatten
       options = paths.last.class == Hash ? paths.pop : {}
       @scan_dirs = paths.map{|p| File.expand_path(p)}
       exclude_paths = options.fetch(:exclude){ []}
@@ -25,42 +26,48 @@ module Deduper
       @exclude_paths << path
     end
 
+    def exclude_proc(&block)
+      @exclude_procs << block
+    end
+
+
     def scan
       files = []
-      Find.find(*scan_dirs).each do |path|
+      begin
+      Find.find(*scan_dirs)  do |path|
+        
         if File.directory? path
           Find.prune if should_exclude?(path)
+          Find.prune if path =~ /\.VirtualBox/
           next
         else
           next if should_exclude?(path)
-          next unless File.exist?(path)
-          fileinfo = create_file(path)
-          
+          next unless File.exist?(path)          
           if block_given?
-            yield fileinfo
+            yield path
           else
-            files << fileinfo
+            files << path
           end
         end
       end
-      files unless block_given?
       
+      return files unless block_given?
+      end
+      rescue
+         nil
+      end
     end
 
     def scanned_files
       @scanned_files ||= scan
     end
 
-    def create_file(path)
-      file = File.new(path)
-      [path,file.size,file.stat.ino]
-    end
+    
 
     def add_path(path)
       file = 
-      @files << file
+        @files << file
     end
 
   end
 end
-
