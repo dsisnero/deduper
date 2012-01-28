@@ -31,6 +31,7 @@ module Deduper
       @scanner.scan do |path|
         results << FileInfo.new(path)
       end
+      @scanned_files = results
     end
 
     def scanned_files
