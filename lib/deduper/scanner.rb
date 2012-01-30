@@ -34,40 +34,39 @@ module Deduper
     def scan
       files = []
       begin
-      Find.find(*scan_dirs)  do |path|
-        
-        if File.directory? path
-          Find.prune if should_exclude?(path)
-          Find.prune if path =~ /\.VirtualBox/
-          next
-        else
-          next if should_exclude?(path)
-          next unless File.exist?(path)          
-          if block_given?
-            yield path
+        Find.find(*scan_dirs)  do |path|
+          
+          if File.directory? path
+            Find.prune if should_exclude?(path)
+            Find.prune if path =~ /\.VirtualBox/
+            next
           else
-            files << path
+            next if should_exclude?(path)
+            next unless File.exist?(path)          
+            if block_given?
+              yield path
+            else
+              files << path
+            end
           end
         end
+        
+        return files unless block_given?
       end
-      
-      return files unless block_given?
-      end
-      rescue
-         nil
-      end
+    rescue
+      nil
     end
-
-    def scanned_files
-      @scanned_files ||= scan
-    end
-
-    
-
-    def add_path(path)
-      file = 
-        @files << file
-    end
-
   end
+
+  def scanned_files
+    @scanned_files ||= scan
+  end
+
+  
+
+  def add_path(path)
+    file = 
+      @files << file
+  end
+
 end

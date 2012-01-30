@@ -1,4 +1,4 @@
-require 'celluloid'
+#require 'celluloid'
 require 'digest/md5'
 
 # Ask the hasher to perform a complex computation. However, since we're using
@@ -15,7 +15,7 @@ require 'digest/md5'
 
 
 class Hasher
-  include Celluloid
+ # include Celluloid
 
   class << self
     attr_accessor :blksize
@@ -32,9 +32,9 @@ class Hasher
     Digest::MD5.hexdigest(file.read(blksize))
   end
 
-  def digest_tail(file,blksize = @blksize)
-    file = File.new(file)
-    file.seek(-blksize, SEEK::END)
+  def digest_tail(filename,blksize = @blksize)
+    file = File.new(filename)
+    file.seek(-blksize, IO::SEEK_END) if file.stat.size > blksize
     Digest::MD5.hexdigest(file.read(blksize))
   end    
 
@@ -42,10 +42,11 @@ class Hasher
     digest = Digest::MD5.new
     File.open(file,'rb') do |io|
       buffer = ''
-      while buffer = file.read(blksize)
+      while buffer = io.read(blksize)
         digest.update(buffer)
       end
     end
+    digest.digest
   end
   
 end

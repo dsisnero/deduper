@@ -10,12 +10,13 @@ module Deduper
 
   class App
 
-    attr_accessor :scanned_files,:possible_dups,:possible_matches,:matches
+    attr_accessor :scanned_files,:possible_dups,:possible_matches,:matches, :zero_sized_files
 
     def initialize(*args)
       
       @scanner = Scanner.new(*args)
       @original_files = []
+      @zero_sized_files = []
       
     end
 
@@ -29,9 +30,15 @@ module Deduper
     def run_scan
       results = []
       @scanner.scan do |path|
-        results << FileInfo.new(path)
+        file = FileInfo.new(path)
+        if file.size == 0
+          @zero_sized_files << file
+        else
+          results << file
+        end
       end
       @scanned_files = results
+      results
     end
 
     def scanned_files
@@ -44,15 +51,13 @@ module Deduper
     end
 
     def run_match_by_size
-      index_by_size(scanned_files).select{|size,array| array.size > 1}
+      indexed_by_size.select{|key,values| values.size > 1}.values
     end
 
     
     def run_possible_matches 
-      possible_dups.values.map{|same| PossibleMatch.new(same)}
-    end
-
-    
+      possible_dups.map{|same| PossibleMatch.new(same)}
+    end    
 
     def possible_matches
       @possible_matches ||= run_possible_matches
@@ -64,14 +69,18 @@ module Deduper
 
     def run_matches
       possible_matches.map do |possibles|
-        possibles.find_matched_files
+        possibles.matched_files
       end
     end    
 
-    def index_by_size(array)
-      result = Hash.new{|h,k| h[k] = []}
+    def indexed_by_size(array = scanned_files)
+      @index_by_size ||= run_index_by_size(array)
+    end
+
+    def run_index_by_size(array = scanned_files)      
+      result = Hash.new{|h,k| h[k] = []}      
       array.each do |file|
-        result[size] << file
+        result[file.size] << file
       end
       result
     end
